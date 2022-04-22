@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Board from '../components/Board'
 import WinnerBar from '../components/WinnerBar';
-import { trainOnGames, doPredict } from '../tf/train';
+import { trainOnGames, doPredict, getModel } from '../tf/train';
 
 const Game = () => {
   const [mainState, setMainState] = useState({
@@ -11,7 +11,7 @@ const Game = () => {
     }],
     stepNumber: 0,
     xIsNext: true,
-    activeModel: '',
+    activeModel: getModel(),
   });
 
   const handleClick = (i) => {
@@ -91,7 +91,6 @@ const Game = () => {
       xIsNext: (step % 2) === 0,
       history: progress,
     });
-    console.log(progress, step)
   };
 
   const trainUp = (playerLearn) => {
@@ -167,6 +166,15 @@ const Game = () => {
       </h3>
       <div>
         {winnerIs}
+        {!winner && (
+                <a
+                  onClick={makeAIMove.bind(this, mainState)}
+                  className="btn effect01"
+                  target="_blank"
+                >
+                  <span>Make AI Move</span>
+                </a>
+              )}
       </div>
       <ol>{moves}</ol>
     </div>

@@ -4,7 +4,11 @@ import './App.css'
 function App() {
   return (
     <div className="App">
-     <Game></Game>
+      <h1 className="animate__animated animate__bounceInDown">
+        AI Trainable Tic Tac Toe
+      </h1>
+
+      <Game></Game>
     </div>
   );
 }
