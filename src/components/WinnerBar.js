@@ -1,4 +1,4 @@
-const winnerBar = (line) => {
+const WinnerBar = ({line}) => {
   if (line === null) return;
   const pad = 20;
   const cellSize = 65;
@@ -62,6 +62,7 @@ const winnerBar = (line) => {
       y2: `${0 + pad}`,
     },
   ];
+  console.log('line: ', line, lines[line]);
   return (
     <svg
       className="winLine animate_animated animate__bounceIn animate__slower"
@@ -77,3 +78,5 @@ const winnerBar = (line) => {
     </svg>
   );
 };
+
+export default WinnerBar;

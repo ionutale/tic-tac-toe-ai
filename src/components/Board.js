@@ -22,7 +22,7 @@ const Board = (props) => {
   }
 
   return (
-    <div className="centerBoard">
+    <div className="">
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
