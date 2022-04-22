@@ -66,19 +66,6 @@ ul {
   padding-left: 30px;
 }
 
-.centerBoard {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
 .board-row:after {
   clear: both;
   content: "";
@@ -105,14 +92,6 @@ ul {
   color: white;
   /* font-family: "Fredoka One", cursive; */
   font-family: 'Fredericka the Great', cursive;
-}
-
-.blue {
-  /* text-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 5px #0073e6, 0 0 5px #0073e6, 0 0 5px #0073e6, 0 0 5px #0073e6, 0 0 5px #0073e6; */
-}
-
-.red {
-  /* text-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 5px #f40, 0 0 5px #f40, 0 0 5px #f40, 0 0 5px #f40, 0 0 5px #f40; */
 }
 
 .square:focus {

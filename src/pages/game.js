@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Board from '../components/Board'
 import WinnerBar from '../components/WinnerBar';
-import { trainOnGames, doPredict, getModel } from '../tf/train';
+import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 
 const Game = () => {
   const [mainState, setMainState] = useState({
@@ -93,7 +93,7 @@ const Game = () => {
     });
   };
 
-  const trainUp = (playerLearn) => {
+  const trainUp = async (playerLearn) => {
     playerLearn = playerLearn || "O";
     console.log("Train Called - to be more like ", playerLearn);
 
@@ -110,23 +110,20 @@ const Game = () => {
     });
 
     const games = mainState.games.slice();
-    games.push(AllMoves);
+    games.push(getMoves(AllMoves));
 
-    trainOnGames(games, (newModel) => {
-      console.log("Training Complete");
-      window.location.hash = "#";
+    const newModel = await trainOnGames(games)
+    window.location.hash = "#";
 
-      setMainState({
-        ...mainState,
-        games: games,
-        activeModel: newModel,
-        stepNumber: 0,
-        xIsNext: true,
-        history: [{
-          squares: Array(9).fill(null),
-        }],
-
-      });
+    setMainState({
+      ...mainState,
+      games: games,
+      activeModel: newModel,
+      stepNumber: 0,
+      xIsNext: true,
+      history: [{
+        squares: Array(9).fill(null),
+      }],
     });
   }
 
@@ -152,34 +149,68 @@ const Game = () => {
     winnerIs = "";
   }
 
-  return <div className='game'>
-    <div className="game-board">
-      <WinnerBar line={line} />
-      <Board
-        squares={current.squares}
-        onClick={handleClick} />
-    </div>
-    <div className="game-info">
-      <h3>
-        AI has learned from <strong>{mainState.games.length}</strong>{" "}
-        game(s)
-      </h3>
-      <div>
-        {winnerIs}
-        {!winner && (
-                <a
-                  onClick={makeAIMove.bind(this, mainState)}
-                  className="btn effect01"
-                  target="_blank"
-                >
-                  <span>Make AI Move</span>
-                </a>
-              )}
-      </div>
-      <ol>{moves}</ol>
-    </div>
+  const trainSection = () => {
+    if (winner || !current.squares.includes(null))
+      return ['x', 'o'].map((player) => {
+        return (<>
+          <a
+            href="#training-modal"
+            onClick={() => trainUp(player)}
+            className="btn effect01 animate__animated animate__fadeIn bigx"
+          >
+            <span>Train AI to play like {player}</span>
+          </a>
+          <br />
+          <br />
+        </>
+        );
+      });
+  };
 
-  </div>
+  return <>
+    <div id="training-modal" className="modal">
+      <div className="modal__content">
+        <h1>
+          Training
+          <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+          </div>
+        </h1>
+      </div>
+    </div>
+    <div className='game'>
+      <div className="game-board">
+        <WinnerBar line={line} />
+        <Board
+          squares={current.squares}
+          onClick={handleClick} />
+      </div>
+      <div className="game-info">
+        <h3>
+          AI has learned from <strong>{mainState.games.length}</strong>{" "}
+          game(s)
+        </h3>
+        <div>
+          {winnerIs}
+          {!winner && (
+            <a
+              onClick={makeAIMove.bind(this, mainState)}
+              className="btn effect01"
+              target="_blank"
+            >
+              <span>Make AI Move</span>
+            </a>
+          )}
+        </div>
+        <ol>{moves}</ol>
+      </div>
+    </div>
+    <div className="trainSection">
+      {trainSection()}
+    </div>
+  </>
 }
 
 export default Game;

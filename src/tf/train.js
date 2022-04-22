@@ -102,30 +102,35 @@ export const getModel = () => {
   }
 };
 
-export const trainOnGames = async (games, setState) => {
-  console.log(games)
-  const model = constructModel();
-  // model.dispose();
-  let AllX = [];
-  let AllY = [];
-
-  // // console.log("Games in", JSON.stringify(games));
-  games.forEach((game) => {
-    AllX = AllX.concat(game.x);
-    AllY = AllY.concat(game.y);
-  });
-
-  // Tensorfy!
-  const stackedX = tf.stack(AllX);
-  const stackedY = tf.stack(AllY);
-  await trainModel(model, stackedX, stackedY);
-
-  // clean up!
-  stackedX.dispose();
-  stackedY.dispose();
-
-  setState(model);
-  // return updatedModel;
+export const trainOnGames = async (games) => {
+  try {
+    
+    const model = constructModel();
+    // model.dispose();
+    let AllX = [];
+    let AllY = [];
+    
+    // console.log("Games in", JSON.stringify(games), games);
+    games.forEach((game) => {
+      AllX = AllX.concat(game.x);
+      AllY = AllY.concat(game.y);
+    });
+    
+    // Tensorfy!
+    // console.log("AllX", AllX);
+    const stackedX = tf.stack(AllX);
+    const stackedY = tf.stack(AllY);
+    await trainModel(model, stackedX, stackedY);
+    
+    // clean up!
+    stackedX.dispose();
+    stackedY.dispose();
+    
+    return model;
+  } catch (error) {
+    console.error(error);
+    return getModel();
+  }
 };
 
 const trainModel = async (model, stackedX, stackedY) => {
