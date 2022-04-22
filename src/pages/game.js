@@ -55,10 +55,13 @@ const Game = () => {
 
 
   const jumpTo = (step) => {
+    const progress =
+      step === 0 ? [{ squares: Array(9).fill(null) }] : mainState.history;
     setMainState({
       ...mainState,
       stepNumber: step,
       xIsNext: (step % 2) === 0,
+      history: progress,
     });
   };
 
@@ -70,7 +73,7 @@ const Game = () => {
     const desc = move ? "Move #" + move : "Empty Board";
     return (
       <li key={move}>
-        <a onClick={() => this.jumpTo(move)} className="btn effect01">
+        <a onClick={() => jumpTo(move)} className="btn effect01">
           <span>{desc}</span>
         </a>
       </li>
@@ -86,9 +89,9 @@ const Game = () => {
 
   return <div className='game'>
     <div className="game-board">
-    <WinnerBar line={line} />
+      <WinnerBar line={line} />
       <Board
-        squares={mainState.history.at(-1).squares}
+        squares={current.squares}
         onClick={handleClick} />
     </div>
     <div className="game-info">
