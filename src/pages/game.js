@@ -4,6 +4,7 @@ import WinnerBar from '../components/WinnerBar';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 
 const Game = () => {
+  const [trainingProgress, setTrainingProgress] = useState(0);
   const [mainState, setMainState] = useState({
     games: [],
     history: [{
@@ -112,7 +113,7 @@ const Game = () => {
     const games = mainState.games.slice();
     games.push(getMoves(AllMoves));
 
-    const newModel = await trainOnGames(games)
+    const newModel = await trainOnGames(games, setTrainingProgress);
     window.location.hash = "#";
 
     setMainState({
@@ -171,13 +172,14 @@ const Game = () => {
     <div id="training-modal" className="modal">
       <div className="modal__content">
         <h1>
-          Training
-          <div class="spinner">
-            <div class="bounce1"></div>
-            <div class="bounce2"></div>
-            <div class="bounce3"></div>
+          Training in progress
+          <div className="spinner">
+            <div className="bounce1"></div>
+            <div className="bounce2"></div>
+            <div className="bounce3"></div>
           </div>
         </h1>
+        <progress id="training" max="100" value={trainingProgress}> {trainingProgress}% </progress>
       </div>
     </div>
     <div className='game'>

@@ -62,7 +62,6 @@ const WinnerBar = ({line}) => {
       y2: `${0 + pad}`,
     },
   ];
-  console.log('line: ', line, lines[line]);
   return (
     <svg
       className="winLine animate_animated animate__bounceIn animate__slower"

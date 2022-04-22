@@ -102,7 +102,7 @@ export const getModel = () => {
   }
 };
 
-export const trainOnGames = async (games) => {
+export const trainOnGames = async (games, trainingProgress) => {
   try {
     
     const model = constructModel();
@@ -120,7 +120,7 @@ export const trainOnGames = async (games) => {
     // console.log("AllX", AllX);
     const stackedX = tf.stack(AllX);
     const stackedY = tf.stack(AllY);
-    await trainModel(model, stackedX, stackedY);
+    await trainModel(model, stackedX, stackedY, trainingProgress);
     
     // clean up!
     stackedX.dispose();
@@ -133,12 +133,14 @@ export const trainOnGames = async (games) => {
   }
 };
 
-const trainModel = async (model, stackedX, stackedY) => {
+const trainModel = async (model, stackedX, stackedY, trainingProgress) => {
   const allCallbacks = {
     // onTrainBegin: log => console.log(log),
     // onTrainEnd: log => console.log(log),
     // onEpochBegin: (epoch, log) => console.log(epoch, log),
-    onEpochEnd: (epoch, log) => console.log(epoch, log)
+    onEpochEnd: (epoch, log) => {
+      trainingProgress(epoch);
+    }
     // onBatchBegin: (batch, log) => console.log(batch, log),
     // onBatchEnd: (batch, log) => console.log(batch, log)
   };
