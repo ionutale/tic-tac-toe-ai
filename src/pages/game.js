@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Board from '../components/Board'
 import WinnerBar from '../components/WinnerBar';
+import { trainOnGames, doPredict } from '../tf/train';
 
 const Game = () => {
   const [mainState, setMainState] = useState({
@@ -32,6 +33,34 @@ const Game = () => {
     });
   };
 
+  const makeAIMove = async (state) => {
+    const history = state.history.slice(0, state.stepNumber + 1);
+    const current = history[history.length - 1];
+    const squares = current.squares.slice();
+
+    const AIready = squares.map((v) => {
+      if (v === "X") {
+        return state.xIsNext ? 1 : -1;
+      } else if (v === "O") {
+        return state.xIsNext ? -1 : 1;
+      } else {
+        return 0;
+      }
+    });
+
+    let [move, moves] = await doPredict(AIready, state.activeModel);
+    // Check if AI made a valid move!
+    while (squares[move] !== null && squares.includes(null)) {
+      console.log(`AI Failed - Spot ${move} - Resorting to next highest`);
+      // Make current move 0
+      moves[move] = 0;
+      move = moves.indexOf(Math.max(...moves));
+      // move = Math.floor(Math.random() * 9);
+    }
+
+    handleClick(move);
+  }
+
 
   const calculateWinner = (squares) => {
     const lines = [
@@ -53,7 +82,6 @@ const Game = () => {
     return { winner: null, line: null };
   }
 
-
   const jumpTo = (step) => {
     const progress =
       step === 0 ? [{ squares: Array(9).fill(null) }] : mainState.history;
@@ -63,7 +91,45 @@ const Game = () => {
       xIsNext: (step % 2) === 0,
       history: progress,
     });
+    console.log(progress, step)
   };
+
+  const trainUp = (playerLearn) => {
+    playerLearn = playerLearn || "O";
+    console.log("Train Called - to be more like ", playerLearn);
+
+    const AllMoves = mainState.history.map((board) => {
+      return board.squares.map((v) => {
+        if (v === playerLearn) {
+          return 1;
+        } else if (v === null) {
+          return 0;
+        } else {
+          return -1;
+        }
+      });
+    });
+
+    const games = mainState.games.slice();
+    games.push(AllMoves);
+
+    trainOnGames(games, (newModel) => {
+      console.log("Training Complete");
+      window.location.hash = "#";
+
+      setMainState({
+        ...mainState,
+        games: games,
+        activeModel: newModel,
+        stepNumber: 0,
+        xIsNext: true,
+        history: [{
+          squares: Array(9).fill(null),
+        }],
+
+      });
+    });
+  }
 
   const history = mainState.history;
   const current = history[mainState.stepNumber];
