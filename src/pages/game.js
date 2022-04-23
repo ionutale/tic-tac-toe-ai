@@ -4,12 +4,16 @@ import WinnerBar from '../components/WinnerBar';
 import About from '../components/About';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 
+const boardSize = [10, 10];
+const sqaresNr = boardSize[0] * boardSize[1];
+
+const emptyAllSqares = Array(sqaresNr).fill(null);
 const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [mainState, setMainState] = useState({
     games: [],
     history: [{
-      squares: Array(9).fill(null),
+      squares: emptyAllSqares,
     }],
     stepNumber: 0,
     xIsNext: true,
@@ -17,6 +21,7 @@ const Game = () => {
   });
 
   const handleClick = (i) => {
+    console.log(i);
     const history = mainState.history.slice(0, mainState.stepNumber + 1);
     const current = history.at(-1)
     const squares = [...current.squares]
@@ -85,8 +90,7 @@ const Game = () => {
   }
 
   const jumpTo = (step) => {
-    const progress =
-      step === 0 ? [{ squares: Array(9).fill(null) }] : mainState.history;
+    const progress = step === 0 ? [{ squares: emptyAllSqares }] : mainState.history;
     setMainState({
       ...mainState,
       stepNumber: step,
@@ -124,7 +128,7 @@ const Game = () => {
       stepNumber: 0,
       xIsNext: true,
       history: [{
-        squares: Array(9).fill(null),
+        squares: emptyAllSqares,
       }],
     });
   }
@@ -187,6 +191,8 @@ const Game = () => {
       <div className="game-board">
         <WinnerBar line={line} />
         <Board
+          boardSize={boardSize}
+          winnerSqares={[1,2,3,4,5]}
           squares={current.squares}
           onClick={handleClick} />
       </div>

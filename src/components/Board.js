@@ -1,12 +1,14 @@
 import Square from "./Sqare";
 
-const boardSize = [10, 10];
 const Board = (props) => {
-  const { squares, onClick } = props;
+
+  const { squares, onClick, winnerSqares, boardSize } = props;
   const renderSquare = (i) => {
     const squareVal = squares[i];
+    let glowClass = winnerSqares?.includes(i) ? "glow" : "";
     return (
-      <Square
+      <Square key={i}
+        glow={glowClass}
         value={squareVal}
         onClick={() => onClick(i)}
       />
@@ -19,7 +21,7 @@ const Board = (props) => {
       rowSquares.push(renderSquare(row * boardSize[1] + i));
     }
     return (
-      <div className="board-row">
+      <div key={`row-${row}`} className="board-row">
         {rowSquares}
       </div>
     );
