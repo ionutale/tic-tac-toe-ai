@@ -1,44 +1,47 @@
 import Square from "./Sqare";
 
+const boardSize = [10, 10];
 const Board = (props) => {
   const { squares, onClick } = props;
-
-  const renderSquare = (i) => {    
+  const renderSquare = (i) => {
     const squareVal = squares[i];
-    
-    let glowClass;
-    if (squareVal === "X") {
-      glowClass = "red";
-    } else if (squareVal) {
-      glowClass = "blue";
-    }
     return (
       <Square
-        glow={glowClass}
         value={squareVal}
         onClick={() => onClick(i)}
       />
     );
   }
 
-  return (
-    <div className="">
+  const renderRow = (row) => {
+    const rowSquares = [];
+    for (let i = 0; i < boardSize[1]; i++) {
+      rowSquares.push(renderSquare(row * boardSize[1] + i));
+    }
+    return (
       <div className="board-row">
-        {renderSquare(0)}
-        {renderSquare(1)}
-        {renderSquare(2)}
+        {rowSquares}
       </div>
-      <div className="board-row">
-        {renderSquare(3)}
-        {renderSquare(4)}
-        {renderSquare(5)}
+    );
+  }
+
+  const renderBoard = () => {
+    const boardRows = [];
+    for (let i = 0; i < boardSize[0]; i++) {
+      boardRows.push(renderRow(i));
+    }
+    return (
+      <div>
+        {boardRows}
       </div>
-      <div className="board-row">
-        {renderSquare(6)}
-        {renderSquare(7)}
-        {renderSquare(8)}
-      </div>
-    </div>
+    );
+  }
+
+
+
+  return ( <>
+    { renderBoard() }
+  </>
   );
 }
 
