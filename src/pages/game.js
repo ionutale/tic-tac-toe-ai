@@ -6,6 +6,7 @@ import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 
 const boardSize = [10, 10];
 const sqaresNr = boardSize[0] * boardSize[1];
+const winSequece = 5;
 
 const emptyAllSqares = Array(sqaresNr).fill(null);
 const Game = () => {
@@ -18,18 +19,21 @@ const Game = () => {
     stepNumber: 0,
     xIsNext: true,
     activeModel: getModel(),
+    winnerSqares: [],
   });
 
   const handleClick = (i) => {
-    console.log(i);
     const history = mainState.history.slice(0, mainState.stepNumber + 1);
     const current = history.at(-1)
     const squares = [...current.squares]
 
-    if (calculateWinner(squares).winner || squares[i]) {
+    // check if square is already filled
+    // or if winner is already declared
+    if (squares[i] || mainState.winnerSqares.length) {
       return;
     }
     squares[i] = mainState.xIsNext ? 'X' : 'O';
+
     setMainState({
       ...mainState,
       history: history.concat([{
@@ -37,6 +41,7 @@ const Game = () => {
       }]),
       stepNumber: history.length,
       xIsNext: !mainState.xIsNext,
+      winnerSqares: horizontalWin(squares, i) // || verticalWin(squares, i) || diagonalWin(squares, i) ? [i] : [],
     });
   };
 
@@ -68,6 +73,32 @@ const Game = () => {
     handleClick(move);
   }
 
+  const horizontalWin = (squares, clickedSqareNumber) => {
+    // check if 5 sqares in a row horizontally are the 
+    // same and clickedSqareNumber is in 1 of those 5 sqares
+    const rownLength = boardSize[0];
+    const checkSequence = winSequece - 1; // click is always in the middle of the sequence so no need to check for it
+    const clickedSqareRow = Math.floor(clickedSqareNumber / rownLength);
+    const clickedSqareRowStart = clickedSqareRow * rownLength;
+    const clickedSqareRowEnd = clickedSqareRowStart + rownLength;
+    
+    const player = squares[clickedSqareNumber];
+    
+    const start = (clickedSqareNumber - checkSequence) > clickedSqareRowStart ? (clickedSqareNumber - checkSequence) : clickedSqareRowStart;
+    const end   = (start + checkSequence) < clickedSqareRowEnd   ? (start + checkSequence) : clickedSqareRowEnd;
+
+    const clickedSqareRowSquaresFiltered = [];
+    for (let i = start; i <= end; i++) {
+      if (squares[i] === player) {
+        clickedSqareRowSquaresFiltered.push(i);
+      }
+    }
+
+    if (clickedSqareRowSquaresFiltered.length === 5) {
+      return clickedSqareRowSquaresFiltered;
+    }
+    return [];
+  }
 
   const calculateWinner = (squares) => {
     const lines = [
@@ -96,6 +127,7 @@ const Game = () => {
       stepNumber: step,
       xIsNext: (step % 2) === 0,
       history: progress,
+      winnerSqares: [],
     });
   };
 
@@ -192,7 +224,7 @@ const Game = () => {
         <WinnerBar line={line} />
         <Board
           boardSize={boardSize}
-          winnerSqares={[1,2,3,4,5]}
+          winnerSqares={mainState.winnerSqares}
           squares={current.squares}
           onClick={handleClick} />
       </div>

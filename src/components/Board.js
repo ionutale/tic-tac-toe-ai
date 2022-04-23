@@ -3,6 +3,8 @@ import Square from "./Sqare";
 const Board = (props) => {
 
   const { squares, onClick, winnerSqares, boardSize } = props;
+  console.log(winnerSqares);
+
   const renderSquare = (i) => {
     const squareVal = squares[i];
     let glowClass = winnerSqares?.includes(i) ? "glow" : "";
