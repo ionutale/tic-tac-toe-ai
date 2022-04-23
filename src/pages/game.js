@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Board from '../components/Board'
 import WinnerBar from '../components/WinnerBar';
+import About from '../components/About';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 
 const Game = () => {
@@ -212,6 +213,7 @@ const Game = () => {
     <div className="trainSection">
       {trainSection()}
     </div>
+    <About activeModel={mainState.activeModel} games={mainState.games}/> 
   </>
 }
 
