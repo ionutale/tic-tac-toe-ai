@@ -41,7 +41,7 @@ const Game = () => {
       }]),
       stepNumber: history.length,
       xIsNext: !mainState.xIsNext,
-      winnerSqares: horizontalWin(squares, i) // || verticalWin(squares, i) || diagonalWin(squares, i) ? [i] : [],
+      winnerSqares: checkHorizontalWin(squares, i) // || verticalWin(squares, i) || diagonalWin(squares, i) ? [i] : [],
     });
   };
 
@@ -73,31 +73,33 @@ const Game = () => {
     handleClick(move);
   }
 
-  const horizontalWin = (squares, clickedSqareNumber) => {
-    // check if 5 sqares in a row horizontally are the 
-    // same and clickedSqareNumber is in 1 of those 5 sqares
-    const rownLength = boardSize[0];
-    const checkSequence = winSequece - 1; // click is always in the middle of the sequence so no need to check for it
-    const clickedSqareRow = Math.floor(clickedSqareNumber / rownLength);
-    const clickedSqareRowStart = clickedSqareRow * rownLength;
-    const clickedSqareRowEnd = clickedSqareRowStart + rownLength;
-    
+  const checkHorizontalWin = (squares, clickedSqareNumber) => {
+    // use the clickSqareNumber to find the current player
     const player = squares[clickedSqareNumber];
     
-    const start = (clickedSqareNumber - checkSequence) > clickedSqareRowStart ? (clickedSqareNumber - checkSequence) : clickedSqareRowStart;
-    const end   = (start + checkSequence) < clickedSqareRowEnd   ? (start + checkSequence) : clickedSqareRowEnd;
+   // use the clickSqareNumber to find the row
+    const row = Math.floor(clickedSqareNumber / boardSize[0]);
+    // use the row to find the start and end of the row
+    const start = row * boardSize[0];
+    const end = start + boardSize[0];
+    // use the start and end to find the win sequence
+    const rowToCheck = squares.slice(start, end);
+    
+    let winArr = [];
 
-    const clickedSqareRowSquaresFiltered = [];
-    for (let i = start; i <= end; i++) {
-      if (squares[i] === player) {
-        clickedSqareRowSquaresFiltered.push(i);
+    // loop through the row and check if there are winSequece in a row with the same player
+    for (let i = 0; i < rowToCheck.length; i++) {
+      if (rowToCheck[i] === player) {
+        winArr.push(i + start);
+        if (winArr.length === winSequece) {
+          return winArr;
+        }
+      } else {
+        winArr = [];
       }
     }
 
-    if (clickedSqareRowSquaresFiltered.length === 5) {
-      return clickedSqareRowSquaresFiltered;
-    }
-    return [];
+    return winArr.length === winSequece ? winArr : [];
   }
 
   const calculateWinner = (squares) => {
