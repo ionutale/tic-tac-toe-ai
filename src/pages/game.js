@@ -41,7 +41,7 @@ const Game = () => {
       }]),
       stepNumber: history.length,
       xIsNext: !mainState.xIsNext,
-      winnerSqares: checkHorizontalWin(squares, i) // || verticalWin(squares, i) || diagonalWin(squares, i) ? [i] : [],
+      winnerSqares: checkHorizontalWin(squares, i) || checkVerticalWin(squares, i) /*|| checkDiagonalWin(squares, i)*/ || [],
     });
   };
 
@@ -73,18 +73,40 @@ const Game = () => {
     handleClick(move);
   }
 
-  const checkHorizontalWin = (squares, clickedSqareNumber) => {
-    // use the clickSqareNumber to find the current player
-    const player = squares[clickedSqareNumber];
-    
-   // use the clickSqareNumber to find the row
-    const row = Math.floor(clickedSqareNumber / boardSize[0]);
+  const checkVerticalWin = (squares, i) => {
+    // use the i to find the current player
+    const player = squares[i];
+
+    // get column from i
+    const column = Math.floor(i % boardSize[0]);
+
+    let win = [];
+    // if the i is equal to 1, then check sqares 11, 21, 31, 41, 51 for the same player
+    for (let j = 1; j <= boardSize[0]; j++) {
+      if (squares[column + j * boardSize[0]] === player) {
+        win.push(column + j * boardSize[0]);
+        if (win.length === winSequece) {
+          return win;
+        }
+      } else {
+        win = [];
+      }
+    }
+    return undefined;
+  }
+
+  const checkHorizontalWin = (squares, i) => {
+    // use the i to find the current player
+    const player = squares[i];
+
+    // use the i to find the row
+    const row = Math.floor(i / boardSize[0]);
     // use the row to find the start and end of the row
     const start = row * boardSize[0];
     const end = start + boardSize[0];
     // use the start and end to find the win sequence
     const rowToCheck = squares.slice(start, end);
-    
+
     let winArr = [];
 
     // loop through the row and check if there are winSequece in a row with the same player
@@ -99,7 +121,7 @@ const Game = () => {
       }
     }
 
-    return winArr.length === winSequece ? winArr : [];
+    return undefined;
   }
 
   const calculateWinner = (squares) => {
@@ -253,8 +275,7 @@ const Game = () => {
     <div className="trainSection">
       {trainSection()}
     </div>
-    <About activeModel={mainState.activeModel} games={mainState.games}/> 
+    <About activeModel={mainState.activeModel} games={mainState.games} />
   </>
 }
-
 export default Game;
