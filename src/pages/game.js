@@ -42,11 +42,12 @@ const Game = () => {
       }]),
       stepNumber: history.length,
       xIsNext: !mainState.xIsNext,
-      winnerSqares: checkHorizontalWin(squares, i) || checkVerticalWin(squares, i) /*|| checkDiagonalWin(squares, i)*/ || [],
+      winnerSqares: checkHorizontalWin(squares, i) || checkVerticalWin(squares, i) || checkDiagonalWin(squares, i) || checkReverseDiagonalWin(squares, i) || [],
     });
   };
 
   const handleMouseOver = (indx) => {
+    return; // disable mouseover
     // number of sqares to check
     const nrToCheck = 3;
 
@@ -187,23 +188,79 @@ const Game = () => {
   }
 
   const checkDiagonalWin = (squares, i) => {
-    // use the i to find the current player
-    const player = squares[i];
+    // now we need to check if the win is in diagonal
+    // the i is the current square
+    // use the i to loop through the diagonal
+    // and check if the sqare value is the same
+    // if it is, then push it to the win array
+    // if the win array is equal to winSequece, then return the win array
+    // if not, then return undefined
+    let player = squares[i];
+    let win = [];
+    let j = i;
+    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
+      if (squares[j] === player) {
+        win.push(j);
+        if (win.length === winSequece) {
+          return win;
+        }
+      } else {
+        win = [];
+      }
+      j -= boardSize[0] + 1;
+    }
 
-    // use the i to find the row
-    const row = Math.floor(i / boardSize[0]);
+    j = i;
+    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
+      if (squares[j] === player) {
+        win.push(j);
+        if (win.length === winSequece) {
+          return win;
+        }
+      } else {
+        win = [];
+      }
+      j += boardSize[0] + 1;
+    }
+    return undefined;
+  }
 
-    // use the row to find the start and end of the row
-    const start = row * boardSize[0];
-    const end = start + boardSize[0];
+  const checkReverseDiagonalWin = (squares, i) => {
+    // now we need to check if the win is in reverse diagonal
+    // the i is the current square
+    // use the i to loop through the reverse diagonal
+    // and check if the sqare value is the same
+    // if it is, then push it to the win array
+    // if the win array is equal to winSequece, then return the win array
+    // if not, then return undefined
+    let player = squares[i];
+    let win = [];
+    let j = i;
+    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
+      if (squares[j] === player) {
+        win.push(j);
+        if (win.length === winSequece) {
+          return win;
+        }
+      } else {
+        win = [];
+      }
+      j += boardSize[0] - 1;
+    }
 
-    // use the i to find the column
-    const column = Math.floor(i % boardSize[0]);
-
-    // use the column to find the start and end of the column
-    const columnStart = column;
-    const columnEnd = column + boardSize[0];
-
+    j = i;
+    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
+      if (squares[j] === player) {
+        win.push(j);
+        if (win.length === winSequece) {
+          return win;
+        }
+      } else {
+        win = [];
+      }
+      j -= boardSize[0] - 1;
+    }
+    return undefined;
   }
 
 
