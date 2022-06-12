@@ -23,6 +23,7 @@ const Game = () => {
   });
 
   const handleClick = (i) => {
+    console.log(i);
     const history = mainState.history.slice(0, mainState.stepNumber + 1);
     const current = history.at(-1)
     const squares = [...current.squares]
@@ -44,6 +45,68 @@ const Game = () => {
       winnerSqares: checkHorizontalWin(squares, i) || checkVerticalWin(squares, i) /*|| checkDiagonalWin(squares, i)*/ || [],
     });
   };
+
+  const handleMouseOver = (indx) => {
+    // number of sqares to check
+    const nrToCheck = 3;
+
+    // from the position of i, 
+    // select sqares from -2 to 2 in both directions
+    // and return them to winnwerSqares
+    const offSetMin = 1
+    const offSetMax = offSetMin * 2 + 1
+
+    const firstSqareIndx = indx - boardSize[1] * (offSetMin * 1.1)
+    const lastSqareIndx = indx + boardSize[1] * (offSetMin * 1.1)
+
+    const sqares = [firstSqareIndx, lastSqareIndx]
+
+    // loop
+    for (let j = 0; j < 3; j++) {
+      for (let i = firstSqareIndx + (boardSize[0] * j); i < (firstSqareIndx + offSetMax + (boardSize[0] * j)); i++) {
+        sqares.push(i)
+      }
+    }
+
+    setMainState({
+      ...mainState,
+      winnerSqares: sqares,
+    });
+
+  }
+
+  /*
+     use the mouse click button to get the center of the square of 9 squares
+
+  */
+  const handleMouseDown = (indx) => {
+    // number of sqares to check
+    const nrToCheck = 3;
+
+    // from the position of i,
+    // select sqares from -2 to 2 in both directions
+    // and return them to winnwerSqares
+    const offSetMin = 1
+    const offSetMax = offSetMin * 2 + 1
+
+    const firstSqareIndx = indx - boardSize[1] * (offSetMin * 1.1)
+    const lastSqareIndx = indx + boardSize[1] * (offSetMin * 1.1)
+
+    const sqares = [firstSqareIndx, lastSqareIndx]
+
+    // loop
+    for (let j = 0; j < 3; j++) {
+      for (let i = firstSqareIndx + (boardSize[0] * j); i < (firstSqareIndx + offSetMax + (boardSize[0] * j)); i++) {
+        sqares.push(i)
+      }
+    }
+
+    setMainState({
+      ...mainState,
+      winnerSqares: sqares,
+    });
+  }
+
 
   const makeAIMove = async (state) => {
     const history = state.history.slice(0, state.stepNumber + 1);
@@ -120,9 +183,29 @@ const Game = () => {
         winArr = [];
       }
     }
-
     return undefined;
   }
+
+  const checkDiagonalWin = (squares, i) => {
+    // use the i to find the current player
+    const player = squares[i];
+
+    // use the i to find the row
+    const row = Math.floor(i / boardSize[0]);
+
+    // use the row to find the start and end of the row
+    const start = row * boardSize[0];
+    const end = start + boardSize[0];
+
+    // use the i to find the column
+    const column = Math.floor(i % boardSize[0]);
+
+    // use the column to find the start and end of the column
+    const columnStart = column;
+    const columnEnd = column + boardSize[0];
+
+  }
+
 
   const calculateWinner = (squares) => {
     const lines = [
@@ -245,12 +328,13 @@ const Game = () => {
     </div>
     <div className='game'>
       <div className="game-board">
-        <WinnerBar line={line} />
         <Board
           boardSize={boardSize}
           winnerSqares={mainState.winnerSqares}
           squares={current.squares}
-          onClick={handleClick} />
+          onClick={handleClick}
+          onMouseOver={handleMouseOver}
+        />
       </div>
       <div className="game-info">
         <h3>

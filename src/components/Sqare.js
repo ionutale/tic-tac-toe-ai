@@ -4,7 +4,7 @@ const Square = (props) => {
   : "square";
 
   return (
-    <button className={visual} onClick={props.onClick}>
+    <button className={visual} onClick={props.onClick} onMouseOver={props.onMouseOver}>
       {props.value} 
     </button>
   )
