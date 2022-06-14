@@ -2,12 +2,12 @@ import { useState } from 'react'
 import Board from '../components/Board'
 import About from '../components/About';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
+import * as checkWin from '../util/check-win';
 
 const boardSize = [10, 10];
 const sqaresNr = boardSize[0] * boardSize[1];
-const winSequece = 5;
-
 const emptyAllSqares = Array(sqaresNr).fill(null);
+
 const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [mainState, setMainState] = useState({
@@ -22,7 +22,7 @@ const Game = () => {
   });
 
   const handleClick = (i) => {
-    console.log(i);
+    console.log(i, mainState.xIsNext ? 'X' : 'O');
     const history = mainState.history.slice(0, mainState.stepNumber + 1);
     const current = history.at(-1)
     const squares = [...current.squares]
@@ -41,10 +41,25 @@ const Game = () => {
       }]),
       stepNumber: history.length,
       xIsNext: !mainState.xIsNext,
-      winnerSqares: checkHorizontalWin(squares, i) || checkVerticalWin(squares, i) || checkDiagonalWin(squares, i) || checkReverseDiagonalWin(squares, i) || [],
+      winnerSqares: 
+        checkWin.checkHorizontalWin(squares, i, boardSize) || 
+        checkWin.checkVerticalWin(squares, i, boardSize) || 
+        checkWin.checkDiagonalWin(squares, i, boardSize) || 
+        checkWin.checkReverseDiagonalWin(squares, i, boardSize) || 
+        [],
     });
   };
 
+  const jumpTo = (step) => {
+    const progress = step === 0 ? [{ squares: emptyAllSqares }] : mainState.history;
+    setMainState({
+      ...mainState,
+      stepNumber: step,
+      xIsNext: (step % 2) === 0,
+      history: progress,
+      winnerSqares: [],
+    });
+  };
 
   const makeAIMove = async (state) => {
     const history = state.history.slice(0, state.stepNumber + 1);
@@ -74,182 +89,18 @@ const Game = () => {
     handleClick(move);
   }
 
-  const checkVerticalWin = (squares, i) => {
-    // use the i to find the current player
-    const player = squares[i];
-
-    // get column from i
-    const column = Math.floor(i % boardSize[0]);
-
-    let win = [];
-    // if the i is equal to 1, then check sqares 11, 21, 31, 41, 51 for the same player
-    for (let j = 1; j <= boardSize[0]; j++) {
-      if (squares[column + j * boardSize[0]] === player) {
-        win.push(column + j * boardSize[0]);
-        if (win.length === winSequece) {
-          return win;
-        }
-      } else {
-        win = [];
-      }
-    }
-    return undefined;
-  }
-
-  const checkHorizontalWin = (squares, i) => {
-    // use the i to find the current player
-    const player = squares[i];
-
-    // use the i to find the row
-    const row = Math.floor(i / boardSize[0]);
-    // use the row to find the start and end of the row
-    const start = row * boardSize[0];
-    const end = start + boardSize[0];
-    // use the start and end to find the win sequence
-    const rowToCheck = squares.slice(start, end);
-
-    let winArr = [];
-
-    // loop through the row and check if there are winSequece in a row with the same player
-    for (let i = 0; i < rowToCheck.length; i++) {
-      if (rowToCheck[i] === player) {
-        winArr.push(i + start);
-        if (winArr.length === winSequece) {
-          return winArr;
-        }
-      } else {
-        winArr = [];
-      }
-    }
-    return undefined;
-  }
-
-  const checkDiagonalWin = (squares, i) => {
-    // now we need to check if the win is in diagonal
-    // the i is the current square
-    // use the i to loop through the diagonal
-    // and check if the sqare value is the same
-    // if it is, then push it to the win array
-    // if the win array is equal to winSequece, then return the win array
-    // if not, then return undefined
-    let player = squares[i];
-    let win = [];
-    let j = i;
-    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
-      if (squares[j] === player) {
-        win.push(j);
-        if (win.length === winSequece) {
-          return win;
-        }
-      } else {
-        win = [];
-      }
-      j -= boardSize[0] + 1;
-    }
-
-    j = i;
-    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
-      if (squares[j] === player) {
-        win.push(j);
-        if (win.length === winSequece) {
-          return win;
-        }
-      } else {
-        win = [];
-      }
-      j += boardSize[0] + 1;
-    }
-    return undefined;
-  }
-
-  const checkReverseDiagonalWin = (squares, i) => {
-    // now we need to check if the win is in reverse diagonal
-    // the i is the current square
-    // use the i to loop through the reverse diagonal
-    // and check if the sqare value is the same
-    // if it is, then push it to the win array
-    // if the win array is equal to winSequece, then return the win array
-    // if not, then return undefined
-    let player = squares[i];
-    let win = [];
-    let j = i;
-    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
-      if (squares[j] === player) {
-        win.push(j);
-        if (win.length === winSequece) {
-          return win;
-        }
-      } else {
-        win = [];
-      }
-      j += boardSize[0] - 1;
-    }
-
-    j = i;
-    while (j >= 0 && j < boardSize[0] * boardSize[1]) {
-      if (squares[j] === player) {
-        win.push(j);
-        if (win.length === winSequece) {
-          return win;
-        }
-      } else {
-        win = [];
-      }
-      j -= boardSize[0] - 1;
-    }
-    return undefined;
-  }
-
-
-  const calculateWinner = (squares) => {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return { winner: squares[a], line: i };
-      }
-    }
-    return { winner: null, line: null };
-  }
-
-  const jumpTo = (step) => {
-    const progress = step === 0 ? [{ squares: emptyAllSqares }] : mainState.history;
-    setMainState({
-      ...mainState,
-      stepNumber: step,
-      xIsNext: (step % 2) === 0,
-      history: progress,
-      winnerSqares: [],
-    });
-  };
-
   const trainUp = async (playerLearn) => {
     playerLearn = playerLearn || "O";
     console.log("Train Called - to be more like ", playerLearn);
 
     const AllMoves = mainState.history.map((board) => {
       return board.squares.map((v) => {
-        if (v === playerLearn) {
-          return 1;
-        } else if (v === null) {
-          return 0;
-        } else {
-          return -1;
-        }
+        if (v === null) return 0;
+        return v === playerLearn ? 1 : -1;
       });
     });
 
-    const games = mainState.games.slice();
-    games.push(getMoves(AllMoves));
+    const games = [...mainState.games, getMoves(AllMoves)];
 
     const newModel = await trainOnGames(games, setTrainingProgress);
     window.location.hash = "#";
@@ -268,10 +119,9 @@ const Game = () => {
 
   const history = mainState.history;
   const current = history[mainState.stepNumber];
-  const { winner, line } = calculateWinner(current.squares);
 
   const moves = history.map((step, move) => {
-    const desc = move ? "Move #" + move : "Empty Board";
+    const desc = move ? `Move #  ${move}` : "Empty Board";
     return (
       <li key={move}>
         <button onClick={() => jumpTo(move)} className="btn effect01">
@@ -281,15 +131,8 @@ const Game = () => {
     );
   });
 
-  let winnerIs;
-  if (winner) {
-    winnerIs = "Winner: " + winner;
-  } else {
-    winnerIs = "";
-  }
-
   const trainSection = () => {
-    if (winner || !current.squares.includes(null))
+    if (!mainState.winnerSqares.includes(null))
       return ['x', 'o'].map((player) => {
         return (<>
           <button
@@ -305,6 +148,8 @@ const Game = () => {
         );
       });
   };
+
+  const winner = (state) => state.winnerSqares.length ? `Winner is: ${!state.xIsNext ? "X" : "O"}` :  `Next player: ${state.xIsNext ? "X" : "O"}`;
 
   return <>
     <div id="training-modal" className="modal">
@@ -327,7 +172,6 @@ const Game = () => {
           winnerSqares={mainState.winnerSqares}
           squares={current.squares}
           onClick={handleClick}
-          onMouseOver={handleMouseOver}
         />
       </div>
       <div className="game-info">
@@ -336,8 +180,8 @@ const Game = () => {
           game(s)
         </h3>
         <div>
-          {winnerIs}
-          {!winner && (
+          {winner(mainState)}
+          
             <button
               onClick={makeAIMove.bind(this, mainState)}
               className="btn effect01"
@@ -345,7 +189,7 @@ const Game = () => {
             >
               <span>Make AI Move</span>
             </button>
-          )}
+          
         </div>
         <ol>{moves}</ol>
       </div>

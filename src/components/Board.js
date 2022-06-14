@@ -2,7 +2,7 @@ import Square from "./Sqare";
 
 const Board = (props) => {
 
-  const { squares, onClick, winnerSqares, boardSize, onMouseOver } = props;
+  const { squares, onClick, winnerSqares, boardSize } = props;
   // console.log(winnerSqares);
 
   const renderSquare = (i) => {
@@ -13,7 +13,6 @@ const Board = (props) => {
         glow={glowClass}
         value={squareVal}
         onClick={() => onClick(i)}
-        onMouseOver={() => onMouseOver(i)}
       />
     );
   }
