@@ -76,17 +76,19 @@ const Game = () => {
       }
     });
 
-    let [move, moves] = await doPredict(AIready, state.activeModel);
-    // Check if AI made a valid move!
-    while (squares[move] !== null && squares.includes(null)) {
-      console.log(`AI Failed - Spot ${move} - Resorting to next highest`);
-      // Make current move 0
-      moves[move] = 0;
-      move = moves.indexOf(Math.max(...moves));
-      // move = Math.floor(Math.random() * 9);
-    }
+    let nextSqare = await doPredict(AIready, state.activeModel);
+    console.log(nextSqare);
 
-    handleClick(move);
+    // check if square is already filled
+    // or if winner is already declared
+    if (squares[nextSqare] || state.winnerSqares.length) {
+      console.log('square is already filled');
+      return;
+    }
+    // from the nextSqare get the highest value index
+    const highestValueIndex = nextSqare.indexOf(Math.max(...nextSqare));
+    console.log("next suggested square is:",highestValueIndex);
+    //handleClick(nextSqare);
   }
 
   const trainUp = async (playerLearn) => {
@@ -114,6 +116,7 @@ const Game = () => {
       history: [{
         squares: emptyAllSqares,
       }],
+      winnerSqares: [],
     });
   }
 

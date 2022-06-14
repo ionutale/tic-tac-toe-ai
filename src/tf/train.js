@@ -1,20 +1,17 @@
 import * as tf from "@tensorflow/tfjs";
+import { findRenderedDOMComponentWithClass } from "react-dom/test-utils";
 
 // TODO: Dis so nasty
 export const doPredict = async (myBoard, ttt_model) => {
   const tenseBlock = tf.tensor([myBoard]);
   const result = await ttt_model.predict(tenseBlock);
+  
+  console.log(result.print());
+  const resultArray = result.dataSync();
 
-  const flatty = result.flatten();
-  const maxy = flatty.argMax();
-  const move = await maxy.data();
-  const allMoves = await flatty.data();
-
-  flatty.dispose();
   tenseBlock.dispose();
   result.dispose();
-  maxy.dispose();
-  return [move[0], allMoves];
+  return resultArray;
 };
 
 let currentModel;
@@ -58,28 +55,29 @@ export const getMoves = (block) => {
 export const constructModel = () => {
   currentModel && currentModel.dispose();
   tf.disposeVariables();
-
+  let inputShape = 100;
+  let units = inputShape * 5;
   const model = tf.sequential();
 
   model.add(
     tf.layers.dense({
-      inputShape: 9,
-      units: 64,
-      activation: "relu"
+      inputShape: inputShape,
+      units: units,
+      activation: "tanh"
     })
   );
 
   model.add(
     tf.layers.dense({
-      units: 64,
-      activation: "relu"
+      units: units,
+      activation: "tanh"
     })
   );
 
   model.add(
     tf.layers.dense({
-      units: 9,
-      activation: "softmax"
+      units: inputShape,
+      activation: "sigmoid"
     })
   );
 
@@ -148,7 +146,7 @@ const trainModel = async (model, stackedX, stackedY, trainingProgress) => {
   await model.fit(stackedX, stackedY, {
     epochs: 100,
     shuffle: true,
-    batchSize: 32,
+    batchSize: 8,
     callbacks: allCallbacks
   });
 
