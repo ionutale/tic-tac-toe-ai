@@ -9,7 +9,7 @@ export const checkVerticalWin = (squares, i, boardSize) => {
 
   let win = [];
   // if the i is equal to 1, then check sqares 11, 21, 31, 41, 51 for the same player
-  for (let j = 1; j <= boardSize[0]; j++) {
+  for (let j = 0; j <= boardSize[0]; j++) {
     if (squares[column + j * boardSize[0]] === player) {
       win.push(column + j * boardSize[0]);
       if (win.length === winSequece) {

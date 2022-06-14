@@ -6,9 +6,8 @@ export const doPredict = async (myBoard, ttt_model) => {
   const tenseBlock = tf.tensor([myBoard]);
   const result = await ttt_model.predict(tenseBlock);
   
-  console.log(result.print());
   const resultArray = result.dataSync();
-
+  
   tenseBlock.dispose();
   result.dispose();
   return resultArray;
@@ -63,14 +62,35 @@ export const constructModel = () => {
     tf.layers.dense({
       inputShape: inputShape,
       units: units,
-      activation: "tanh"
+      activation: "relu"
     })
   );
 
   model.add(
     tf.layers.dense({
       units: units,
-      activation: "tanh"
+      activation: "relu"
+    })
+  );
+
+  model.add(
+    tf.layers.dense({
+      units: units,
+      activation: "relu"
+    })
+  );
+
+  model.add(
+    tf.layers.dense({
+      units: units,
+      activation: "relu"
+    })
+  );
+
+  model.add(
+    tf.layers.dense({
+      units: units,
+      activation: "relu"
     })
   );
 
