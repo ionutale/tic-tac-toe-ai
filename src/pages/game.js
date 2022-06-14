@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Board from '../components/Board'
-import WinnerBar from '../components/WinnerBar';
 import About from '../components/About';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 
@@ -45,68 +44,6 @@ const Game = () => {
       winnerSqares: checkHorizontalWin(squares, i) || checkVerticalWin(squares, i) || checkDiagonalWin(squares, i) || checkReverseDiagonalWin(squares, i) || [],
     });
   };
-
-  const handleMouseOver = (indx) => {
-    return; // disable mouseover
-    // number of sqares to check
-    const nrToCheck = 3;
-
-    // from the position of i, 
-    // select sqares from -2 to 2 in both directions
-    // and return them to winnwerSqares
-    const offSetMin = 1
-    const offSetMax = offSetMin * 2 + 1
-
-    const firstSqareIndx = indx - boardSize[1] * (offSetMin * 1.1)
-    const lastSqareIndx = indx + boardSize[1] * (offSetMin * 1.1)
-
-    const sqares = [firstSqareIndx, lastSqareIndx]
-
-    // loop
-    for (let j = 0; j < 3; j++) {
-      for (let i = firstSqareIndx + (boardSize[0] * j); i < (firstSqareIndx + offSetMax + (boardSize[0] * j)); i++) {
-        sqares.push(i)
-      }
-    }
-
-    setMainState({
-      ...mainState,
-      winnerSqares: sqares,
-    });
-
-  }
-
-  /*
-     use the mouse click button to get the center of the square of 9 squares
-
-  */
-  const handleMouseDown = (indx) => {
-    // number of sqares to check
-    const nrToCheck = 3;
-
-    // from the position of i,
-    // select sqares from -2 to 2 in both directions
-    // and return them to winnwerSqares
-    const offSetMin = 1
-    const offSetMax = offSetMin * 2 + 1
-
-    const firstSqareIndx = indx - boardSize[1] * (offSetMin * 1.1)
-    const lastSqareIndx = indx + boardSize[1] * (offSetMin * 1.1)
-
-    const sqares = [firstSqareIndx, lastSqareIndx]
-
-    // loop
-    for (let j = 0; j < 3; j++) {
-      for (let i = firstSqareIndx + (boardSize[0] * j); i < (firstSqareIndx + offSetMax + (boardSize[0] * j)); i++) {
-        sqares.push(i)
-      }
-    }
-
-    setMainState({
-      ...mainState,
-      winnerSqares: sqares,
-    });
-  }
 
 
   const makeAIMove = async (state) => {
