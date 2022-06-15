@@ -55,26 +55,12 @@ export const constructModel = () => {
   currentModel && currentModel.dispose();
   tf.disposeVariables();
   let inputShape = 100;
-  let units = inputShape * 5;
+  let units = inputShape * 2;
   const model = tf.sequential();
 
   model.add(
     tf.layers.dense({
       inputShape: inputShape,
-      units: units,
-      activation: "relu"
-    })
-  );
-
-  model.add(
-    tf.layers.dense({
-      units: units,
-      activation: "relu"
-    })
-  );
-
-  model.add(
-    tf.layers.dense({
       units: units,
       activation: "relu"
     })

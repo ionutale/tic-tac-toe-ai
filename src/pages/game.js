@@ -12,9 +12,7 @@ const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [mainState, setMainState] = useState({
     games: [],
-    history: [{
-      squares: emptyAllSqares,
-    }],
+    history: [{ squares: emptyAllSqares }],
     stepNumber: 0,
     xIsNext: true,
     activeModel: getModel(),
@@ -23,9 +21,7 @@ const Game = () => {
 
   const handleClick = (i) => {
     console.log(i, mainState.xIsNext ? 'X' : 'O');
-    const history = mainState.history.slice(0, mainState.stepNumber + 1);
-    const current = history.at(-1)
-    const squares = [...current.squares]
+    const squares = [...mainState.history.at(-1).squares];
 
     // check if square is already filled
     // or if winner is already declared
@@ -36,10 +32,8 @@ const Game = () => {
 
     setMainState({
       ...mainState,
-      history: history.concat([{
-        squares: squares,
-      }]),
-      stepNumber: history.length,
+      history: [...mainState.history, { squares: squares }],
+      stepNumber: mainState.history.length,
       xIsNext: !mainState.xIsNext,
       winnerSqares:
         checkWin.checkHorizontalWin(squares, i, boardSize) ||
@@ -62,9 +56,7 @@ const Game = () => {
   };
 
   const makeAIMove = async (state) => {
-    const history = state.history.slice(0, state.stepNumber + 1);
-    const current = history[history.length - 1];
-    const squares = current.squares.slice();
+    const squares = [...state.history.at(-1).squares];
 
     const AIready = squares.map((v) => {
       if (v === "X") {
@@ -96,120 +88,118 @@ const Game = () => {
       highestValueIndex = randomSquare;
     }
 
-  handleClick(highestValueIndex);
-}
+    handleClick(highestValueIndex);
+  }
 
-const trainUp = async (playerLearn) => {
-  playerLearn = playerLearn || "O";
-  console.log("Train Called - to be more like ", playerLearn);
+  const trainUp = async (playerLearn) => {
+    playerLearn = playerLearn || "O";
+    console.log("Train Called - to be more like ", playerLearn);
 
-  const AllMoves = mainState.history.map((board) => {
-    return board.squares.map((v) => {
-      if (v === null) return 0;
-      return v === playerLearn ? 1 : -1;
+    const AllMoves = mainState.history.map((board) => {
+      return board.squares.map((v) => {
+        if (v === null) return 0;
+        return v === playerLearn ? 1 : -1;
+      });
     });
+
+    const games = [...mainState.games, getMoves(AllMoves)];
+
+    const newModel = await trainOnGames(games, setTrainingProgress);
+    window.location.hash = "#";
+
+    setMainState({
+      ...mainState,
+      games: games,
+      activeModel: newModel,
+      stepNumber: 0,
+      xIsNext: true,
+      history: [{
+        squares: emptyAllSqares,
+      }],
+      winnerSqares: [],
+    });
+    setTrainingProgress(0);
+  }
+
+  const moves = mainState.history.map((step, move) => {
+    const desc = move ? `Move #  ${move}` : "Empty Board";
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)} className="btn effect01">
+          <span>{desc}</span>
+        </button>
+      </li>
+    );
   });
 
-  const games = [...mainState.games, getMoves(AllMoves)];
+  const trainSection = () => {
+    if (mainState.winnerSqares.length)
+      return ['x', 'o'].map((player, idx) => {
+        return (<>
+          <button
+            key={idx}
+            onClick={() => trainUp(player)}
+            className="btn effect01 animate__animated animate__fadeIn bigx"
+          >
+            <span>Train AI to play like {player}</span>
+          </button>
+          <br />
+          <br />
+        </>
+        );
+      });
+  };
 
-  const newModel = await trainOnGames(games, setTrainingProgress);
-  window.location.hash = "#";
+  const winner = (state) => state.winnerSqares.length ? `Winner is: ${!state.xIsNext ? "X" : "O"}` : `Next player: ${state.xIsNext ? "X" : "O"}`;
 
-  setMainState({
-    ...mainState,
-    games: games,
-    activeModel: newModel,
-    stepNumber: 0,
-    xIsNext: true,
-    history: [{
-      squares: emptyAllSqares,
-    }],
-    winnerSqares: [],
-  });
-}
-
-const history = mainState.history;
-const current = history[mainState.stepNumber];
-
-const moves = history.map((step, move) => {
-  const desc = move ? `Move #  ${move}` : "Empty Board";
-  return (
-    <li key={move}>
-      <button onClick={() => jumpTo(move)} className="btn effect01">
-        <span>{desc}</span>
-      </button>
-    </li>
-  );
-});
-
-const trainSection = () => {
-  if (mainState.winnerSqares.length)
-    return ['x', 'o'].map((player) => {
-      return (<>
-        <button
-          href="#training-modal"
-          onClick={() => trainUp(player)}
-          className="btn effect01 animate__animated animate__fadeIn bigx"
-        >
-          <span>Train AI to play like {player}</span>
-        </button>
-        <br />
-        <br />
-      </>
-      );
-    });
-};
-
-const winner = (state) => state.winnerSqares.length ? `Winner is: ${!state.xIsNext ? "X" : "O"}` : `Next player: ${state.xIsNext ? "X" : "O"}`;
-
-return <>
-  <div id="training-modal" className="modal">
-    <div className="modal__content">
-      <h1>
-        Training in progress
-        <div className="spinner">
-          <div className="bounce1"></div>
-          <div className="bounce2"></div>
-          <div className="bounce3"></div>
-        </div>
-      </h1>
-      <progress id="training" max="100" value={trainingProgress}> {trainingProgress}% </progress>
-    </div>
-  </div>
-  <div className='game'>
-    <div className="game-board">
-      <Board
-        boardSize={boardSize}
-        winnerSqares={mainState.winnerSqares}
-        squares={current.squares}
-        onClick={handleClick}
-      />
-    </div>
-    <div className="game-info">
-      <h3>
-        AI has learned from <strong>{mainState.games.length}</strong>{" "}
-        game(s)
-      </h3>
-      <div>
-        {winner(mainState)}
-
-        <button
-          onClick={makeAIMove.bind(this, mainState)}
-          className="btn effect01"
-          target="_blank"
-        >
-          <span>Make AI Move</span>
-        </button>
-
+  return <>
+    <div id="training-modal" className={trainingProgress > 0 ? "modal modal-visible" : "modal"}>
+      <div className="modal__content">
+        <h1>
+          Training in progress
+          <div className="spinner">
+            <div className="bounce1"></div>
+            <div className="bounce2"></div>
+            <div className="bounce3"></div>
+          </div>
+        </h1>
+        <progress id="training" max="100" value={trainingProgress}> {trainingProgress}% </progress>
       </div>
-      <ol className="moves-list"
-      >{moves}</ol>
     </div>
-  </div>
-  <div className="trainSection">
-    {trainSection()}
-  </div>
-  <About activeModel={mainState.activeModel} games={mainState.games} />
-</>
+    <div className='game'>
+      <div className="game-board">
+        <Board
+          boardSize={boardSize}
+          winnerSqares={mainState.winnerSqares}
+          squares={mainState.history.at(-1).squares}
+          onClick={handleClick}
+        />
+      </div>
+      <div className="game-info">
+        <h3>
+          AI has learned from <strong>{mainState.games.length}</strong>{" "}
+          game(s)
+        </h3>
+        <div>
+          {winner(mainState)}
+
+          <button
+            onClick={makeAIMove.bind(this, mainState)}
+            className="btn effect01"
+            target="_blank"
+          >
+            <span>Make AI Move</span>
+          </button>
+
+        </div>
+        <ol className="moves-list"
+        >{moves}</ol>
+      </div>
+    </div>
+    <div className="trainSection">
+      {trainSection()}
+    </div>
+    <About activeModel={mainState.activeModel} games={mainState.games} />
+  </>
 }
 export default Game;

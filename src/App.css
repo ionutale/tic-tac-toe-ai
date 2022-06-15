@@ -256,7 +256,7 @@ ul {
   z-index: 3;
 }
 
-.modal:target {
+.modal-visible {
   visibility: visible;
   opacity: 1;
 }
