@@ -11,13 +11,33 @@ const emptyAllSqares = Array(sqaresNr).fill(null);
 const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [mainState, setMainState] = useState({
-    games: [],
+    games:  localStorage.getItem('games') ? JSON.parse(localStorage.getItem('games')) : [],
     history: [{ squares: emptyAllSqares }],
     stepNumber: 0,
     xIsNext: true,
     activeModel: getModel(),
     winnerSqares: [],
   });
+
+  /* autoplay */
+
+  // create a function what will return promise after a delay
+  const delay = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // create a function that will call 'makeAIMove' after a delay 
+  // and in case of winnerSqares is not empty, it will save the game to mainState.games
+  const autoplay = async () => {
+    while (mainState.winnerSqares.length === 0) {
+      await delay(1000);
+      await randomMove(mainState);
+    }
+    await saveGame(mainState.xIsNext ? "X" : "O");
+  }
+
+
+  /* autoplay */
 
   const handleClick = (i) => {
     console.log(i, mainState.xIsNext ? 'X' : 'O');
@@ -68,20 +88,23 @@ const Game = () => {
       }
     });
 
-    let nextSqare = await doPredict(AIready, state.activeModel);
+    let nextSqare = Array.from(await doPredict(AIready, state.activeModel));
     // from the nextSqare get the highest value index
-    let highestValueIndex = nextSqare.indexOf(Math.max(...nextSqare));
+    let emptySquaresOnly = nextSqare.filter((v, i) => squares[i] === null)
+
+    let highestValueIndex = emptySquaresOnly.indexOf(Math.max(...emptySquaresOnly));
     console.log("next suggested square is:", highestValueIndex);
 
     // check if square is already filled
     // or if winner is already declared
-    if (squares[highestValueIndex] || state.winnerSqares.length) {
+    if (highestValueIndex < 0 || squares[highestValueIndex] || state.winnerSqares.length) {
       console.log('square is already filled');
       // return random square from the empty squares
       const emptySquares = squares.map((v, i) => {
         if (v === null) {
           return i;
         }
+        return undefined;
       }).filter((v) => v !== undefined);
       const randomSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
       console.log("random square is:", randomSquare);
@@ -91,7 +114,24 @@ const Game = () => {
     handleClick(highestValueIndex);
   }
 
-  const trainUp = async (playerLearn) => {
+  // random move
+  const randomMove = async (state) => {
+    const squares = [...state.history.at(-1).squares];
+
+    // return random square from the empty squares
+    const emptySquares = squares.map((v, i) => {
+      if (v === null) {
+        return i;
+      }
+      return undefined;
+    }).filter((v) => v !== undefined);
+    const randomSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+    console.log("random square is:", randomSquare);
+
+    handleClick(randomSquare);
+  }
+
+  const saveGame = async (playerLearn) => {
     playerLearn = playerLearn || "O";
     console.log("Train Called - to be more like ", playerLearn);
 
@@ -104,19 +144,29 @@ const Game = () => {
 
     const games = [...mainState.games, getMoves(AllMoves)];
 
-    const newModel = await trainOnGames(games, setTrainingProgress);
-    window.location.hash = "#";
-
     setMainState({
       ...mainState,
       games: games,
-      activeModel: newModel,
       stepNumber: 0,
       xIsNext: true,
       history: [{
         squares: emptyAllSqares,
       }],
       winnerSqares: [],
+    });
+    console.log("saving to local storage");
+    localStorage.setItem('games', JSON.stringify(games));
+    setTrainingProgress(0);
+  }
+
+  const trainModel = async () => {
+    const newModel = await trainOnGames(mainState.games, setTrainingProgress);
+    console.log("new model is ready");
+
+    console.log("saving to local state");
+    setMainState({
+      ...mainState,
+      activeModel: newModel
     });
     setTrainingProgress(0);
   }
@@ -132,22 +182,19 @@ const Game = () => {
     );
   });
 
-  const trainSection = () => {
-    if (mainState.winnerSqares.length)
-      return ['x', 'o'].map((player, idx) => {
-        return (<>
-          <button
-            key={idx}
-            onClick={() => trainUp(player)}
-            className="btn effect01 animate__animated animate__fadeIn bigx"
-          >
-            <span>Train AI to play like {player}</span>
-          </button>
-          <br />
-          <br />
-        </>
-        );
-      });
+  const saveWinGame = () => {
+    return ['x', 'o'].map((player, idx) => {
+      return (<>
+        <button
+          key={idx}
+          onClick={() => saveGame(player)}
+          className="btn effect01 animate__animated animate__fadeIn bigx"
+        >
+          <span>Save Game like {player}</span>
+        </button>
+      </>
+      );
+    });
   };
 
   const winner = (state) => state.winnerSqares.length ? `Winner is: ${!state.xIsNext ? "X" : "O"}` : `Next player: ${state.xIsNext ? "X" : "O"}`;
@@ -163,9 +210,14 @@ const Game = () => {
             <div className="bounce3"></div>
           </div>
         </h1>
+        <p>{trainingProgress}</p>
         <progress id="training" max="100" value={trainingProgress}> {trainingProgress}% </progress>
       </div>
     </div>
+    <button onClick={() => autoplay()} className="btn effect01 animate__animated animate__fadeIn bigx">make ai move</button>
+    <button onClick={() => trainModel()} className="btn effect01 animate__animated animate__fadeIn">train model </button>
+    {saveWinGame()}
+
     <div className='game'>
       <div className="game-board">
         <Board
@@ -185,6 +237,7 @@ const Game = () => {
 
           <button
             onClick={makeAIMove.bind(this, mainState)}
+            id="ai-move"
             className="btn effect01"
             target="_blank"
           >
@@ -196,9 +249,7 @@ const Game = () => {
         >{moves}</ol>
       </div>
     </div>
-    <div className="trainSection">
-      {trainSection()}
-    </div>
+
     <About activeModel={mainState.activeModel} games={mainState.games} />
   </>
 }

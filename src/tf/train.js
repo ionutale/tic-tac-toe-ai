@@ -1,13 +1,12 @@
 import * as tf from "@tensorflow/tfjs";
-import { findRenderedDOMComponentWithClass } from "react-dom/test-utils";
 
 // TODO: Dis so nasty
 export const doPredict = async (myBoard, ttt_model) => {
   const tenseBlock = tf.tensor([myBoard]);
   const result = await ttt_model.predict(tenseBlock);
-  
+
   const resultArray = result.dataSync();
-  
+
   tenseBlock.dispose();
   result.dispose();
   return resultArray;
@@ -55,7 +54,7 @@ export const constructModel = () => {
   currentModel && currentModel.dispose();
   tf.disposeVariables();
   let inputShape = 100;
-  let units = inputShape * 2;
+  let units = inputShape * 4;
   const model = tf.sequential();
 
   model.add(
@@ -73,12 +72,33 @@ export const constructModel = () => {
     })
   );
 
-  model.add(
-    tf.layers.dense({
-      units: units,
-      activation: "relu"
-    })
-  );
+  // model.add(
+  //   tf.layers.dense({
+  //     units: units,
+  //     activation: "relu"
+  //   })
+  // );
+
+  // model.add(
+  //   tf.layers.dense({
+  //     units: units,
+  //     activation: "relu"
+  //   })
+  // );
+
+  // model.add(
+  //   tf.layers.dense({
+  //     units: units,
+  //     activation: "relu"
+  //   })
+  // );
+
+  // model.add(
+  //   tf.layers.dense({
+  //     units: units,
+  //     activation: "relu"
+  //   })
+  // );
 
   model.add(
     tf.layers.dense({
@@ -108,28 +128,28 @@ export const getModel = () => {
 
 export const trainOnGames = async (games, trainingProgress) => {
   try {
-    
+
     const model = constructModel();
     // model.dispose();
     let AllX = [];
     let AllY = [];
-    
+
     // console.log("Games in", JSON.stringify(games), games);
     games.forEach((game) => {
       AllX = AllX.concat(game.x);
       AllY = AllY.concat(game.y);
     });
-    
+
     // Tensorfy!
     // console.log("AllX", AllX);
     const stackedX = tf.stack(AllX);
     const stackedY = tf.stack(AllY);
     await trainModel(model, stackedX, stackedY, trainingProgress);
-    
+
     // clean up!
     stackedX.dispose();
     stackedY.dispose();
-    
+
     return model;
   } catch (error) {
     console.error(error);
@@ -143,6 +163,7 @@ const trainModel = async (model, stackedX, stackedY, trainingProgress) => {
     // onTrainEnd: log => console.log(log),
     // onEpochBegin: (epoch, log) => console.log(epoch, log),
     onEpochEnd: (epoch, log) => {
+      console.log(epoch, log);
       trainingProgress(epoch);
     }
     // onBatchBegin: (batch, log) => console.log(batch, log),
@@ -152,7 +173,7 @@ const trainModel = async (model, stackedX, stackedY, trainingProgress) => {
   await model.fit(stackedX, stackedY, {
     epochs: 100,
     shuffle: true,
-    batchSize: 8,
+    batchSize: 32,
     callbacks: allCallbacks
   });
 
