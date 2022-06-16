@@ -74,6 +74,7 @@ export const checkDiagonalWin = (squares, i, boardSize) => {
     j -= boardSize[0] + 1;
   }
 
+  win = [];
   j = i;
   while (j >= 0 && j < boardSize[0] * boardSize[1]) {
     if (squares[j] === player) {
@@ -112,6 +113,7 @@ export const checkReverseDiagonalWin = (squares, i, boardSize) => {
     j += boardSize[0] - 1;
   }
 
+  win = [];
   j = i;
   while (j >= 0 && j < boardSize[0] * boardSize[1]) {
     if (squares[j] === player) {
