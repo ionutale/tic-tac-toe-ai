@@ -3,6 +3,7 @@ import Board from '../components/Board'
 import About from '../components/About';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
 import * as checkWin from '../util/check-win';
+import * as dbApi from '../util/db-api'
 
 const boardSize = [10, 10];
 const sqaresNr = boardSize[0] * boardSize[1];
@@ -31,12 +32,16 @@ function useInterval(callback, delay) {
 const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [mainState, setMainState] = useState({
-    games:  localStorage.getItem('games') ? JSON.parse(localStorage.getItem('games')) : [],
+    games: localStorage.getItem('games') ? JSON.parse(localStorage.getItem('games')) : [],
     history: [{ squares: emptyAllSqares }],
     stepNumber: 0,
     xIsNext: true,
     activeModel: getModel(),
     winnerSqares: [],
+    score: {
+      X: 0,
+      O: 0
+    }
   });
 
   /* autoplay */
@@ -45,20 +50,21 @@ const Game = () => {
 
   // create a function that will call 'makeAIMove' after a delay 
   // and in case of winnerSqares is not empty, it will save the game to mainState.games
-  // useInterval(() => {
-  //   // Your custom logic here
-  //   aiMove();
-  // }, 100);
+  useInterval(() => {
+    // Your custom logic here
+    aiMove();
+  }, 100);
 
-  const autoplay = () => {
-  
+  const autoplay = async () => {
+    dbApi.saveData({ "name": "ion", "arr": [1, 2, 3, 4, 5] })
   }
 
   function aiMove() {
     if (mainState.winnerSqares.length === 0) {
       makeAIMove(mainState);
     } else {
-      saveGame(mainState.xIsNext ? "X" : "O");
+      const winner = !mainState.xIsNext ? "X" : "O"
+      saveGame(winner);
     }
   }
 
@@ -66,7 +72,6 @@ const Game = () => {
   /* autoplay */
 
   const handleClick = (i) => {
-    console.log(i, mainState.xIsNext ? 'X' : 'O');
     const squares = [...mainState.history.at(-1).squares];
 
     // check if square is already filled
@@ -121,11 +126,16 @@ const Game = () => {
     let highestValueIndex = emptySquaresOnly.indexOf(Math.max(...emptySquaresOnly));
     console.log("next suggested square is:", highestValueIndex);
 
+    // check if all board has been filled and there is no winner, reset the game
+    if (highestValueIndex === -1) {
+      jumpTo(0);
+      return;
+    }
+
+
     // check if square is already filled
     // or if winner is already declared
     if (highestValueIndex < 0 || squares[highestValueIndex] || state.winnerSqares.length) {
-      console.log('square is already filled');
-      // return random square from the empty squares
       const emptySquares = squares.map((v, i) => {
         if (v === null) {
           return i;
@@ -133,7 +143,7 @@ const Game = () => {
         return undefined;
       }).filter((v) => v !== undefined);
       const randomSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
-      console.log("random square is:", randomSquare);
+      console.log("random square is:", randomSquare, highestValueIndex);
       highestValueIndex = randomSquare;
     }
 
@@ -168,7 +178,19 @@ const Game = () => {
       });
     });
 
-    const games = [...mainState.games, getMoves(AllMoves)];
+
+    let games = [...mainState.games, getMoves(AllMoves)];
+
+    console.log("saving to local storage");
+    //localStorage.setItem('games', JSON.stringify(games));
+    //saveToDb(games.at(-1))
+    dbApi.saveData(games.at(-1))
+
+    if (games.length > 10) {
+      games = [games.at(-1)]
+    }
+
+    console.log(`${playerLearn} won! ${mainState.score[playerLearn]}`);
 
     setMainState({
       ...mainState,
@@ -179,9 +201,11 @@ const Game = () => {
         squares: emptyAllSqares,
       }],
       winnerSqares: [],
+      score: {
+        ...mainState.score,
+        [playerLearn]: mainState.score[playerLearn] + 1
+      }
     });
-    console.log("saving to local storage");
-    localStorage.setItem('games', JSON.stringify(games));
     setTrainingProgress(0);
   }
 
@@ -240,7 +264,7 @@ const Game = () => {
         <progress id="training" max="100" value={trainingProgress}> {trainingProgress}% </progress>
       </div>
     </div>
-    <button onClick={() => autoplay()} className="btn effect01 animate__animated animate__fadeIn bigx">make ai move</button>
+    <button onClick={() => autoplay()} className="btn effect01 animate__animated animate__fadeIn bigx">auto play</button>
     <button onClick={() => trainModel()} className="btn effect01 animate__animated animate__fadeIn">train model </button>
     {saveWinGame()}
 
@@ -258,6 +282,7 @@ const Game = () => {
           AI has learned from <strong>{mainState.games.length}</strong>{" "}
           game(s)
         </h3>
+        <h4>Score - X:{mainState.score.X} 0: {mainState.score.O}</h4>
         <div>
           {winner(mainState)}
 
