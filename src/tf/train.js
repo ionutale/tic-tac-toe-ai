@@ -38,14 +38,14 @@ export const getMoves = (block) => {
     x.push(block[i]);
     y.push(theMove);
     // Flipped X move
-    x.push(flipX(block[i]));
-    y.push(flipX(theMove));
-    // Inverted Move
-    x.push(block[i].slice().reverse());
-    y.push(theMove.slice().reverse());
-    // Flipped Y move
-    x.push(flipY(block[i]));
-    y.push(flipY(theMove));
+    // x.push(flipX(block[i]));
+    // y.push(flipX(theMove));
+    // // Inverted Move
+    // x.push(block[i].slice().reverse());
+    // y.push(theMove.slice().reverse());
+    // // Flipped Y move
+    // x.push(flipY(block[i]));
+    // y.push(flipY(theMove));
   }
   return { x, y };
 };
