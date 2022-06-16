@@ -19,7 +19,7 @@ export const saveData = async (data) => {
       redirect: 'follow'
     };
 
-    let result = (await fetch("https://europe-west3-beta-dodolandia.cloudfunctions.net/SaveTrainData", requestOptions)).text()
+    let result = await (await fetch("https://europe-west3-beta-dodolandia.cloudfunctions.net/SaveTrainData", requestOptions)).text()
     console.log(result)
   } catch (error) {
     console.log('error', error)

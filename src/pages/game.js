@@ -124,8 +124,6 @@ const Game = () => {
     let emptySquaresOnly = nextSqare.filter((v, i) => squares[i] === null)
 
     let highestValueIndex = emptySquaresOnly.indexOf(Math.max(...emptySquaresOnly));
-    console.log("next suggested square is:", highestValueIndex);
-
     // check if all board has been filled and there is no winner, reset the game
     if (highestValueIndex === -1) {
       jumpTo(0);
