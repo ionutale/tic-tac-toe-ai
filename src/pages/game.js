@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Board from '../components/Board'
 import About from '../components/About';
 import { trainOnGames, doPredict, getModel, getMoves } from '../tf/train';
@@ -7,6 +7,26 @@ import * as checkWin from '../util/check-win';
 const boardSize = [10, 10];
 const sqaresNr = boardSize[0] * boardSize[1];
 const emptyAllSqares = Array(sqaresNr).fill(null);
+
+function useInterval(callback, delay) {
+  const savedCallback = useRef();
+
+  // Remember the latest callback.
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  // Set up the interval.
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
+    if (delay !== null) {
+      let id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+  }, [delay]);
+}
 
 const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
@@ -22,18 +42,24 @@ const Game = () => {
   /* autoplay */
 
   // create a function what will return promise after a delay
-  const delay = (ms) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 
   // create a function that will call 'makeAIMove' after a delay 
   // and in case of winnerSqares is not empty, it will save the game to mainState.games
-  const autoplay = async () => {
-    while (mainState.winnerSqares.length === 0) {
-      await delay(1000);
-      await randomMove(mainState);
+  // useInterval(() => {
+  //   // Your custom logic here
+  //   aiMove();
+  // }, 100);
+
+  const autoplay = () => {
+  
+  }
+
+  function aiMove() {
+    if (mainState.winnerSqares.length === 0) {
+      makeAIMove(mainState);
+    } else {
+      saveGame(mainState.xIsNext ? "X" : "O");
     }
-    await saveGame(mainState.xIsNext ? "X" : "O");
   }
 
 
