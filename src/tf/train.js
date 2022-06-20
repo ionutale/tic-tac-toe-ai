@@ -13,6 +13,15 @@ export const doPredict = async (myBoard, ttt_model) => {
 };
 
 let currentModel;
+
+tf.loadLayersModel("https://github.com/ionutale/tic-tac-toe-ai/blob/size-5-autoplay-than-train/public/tictactoe-model-softmax/model.json")
+  .then(model => {
+    currentModel = model;
+  }).catch(error => {
+    console.error(error);
+  });
+
+
 const flipX = (arr) => {
   return [arr.slice(6), arr.slice(3, 6), arr.slice(0, 3)].flat();
 };
@@ -122,9 +131,9 @@ export const getModel = () => {
   if (currentModel) {
     return currentModel;
   } else {
-    //return constructModel();
+    return constructModel();
     // load model from local storage
-    return tf.loadLayersModel("https://github.com/ionutale/tic-tac-toe-ai/blob/size-5-autoplay-than-train/public/tictactoe-model-softmax/model.json");
+    //return tf.loadLayersModel("https://github.com/ionutale/tic-tac-toe-ai/blob/size-5-autoplay-than-train/public/tictactoe-model-softmax/model.json");
   }
 };
 
