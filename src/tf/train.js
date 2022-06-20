@@ -122,7 +122,9 @@ export const getModel = () => {
   if (currentModel) {
     return currentModel;
   } else {
-    return constructModel();
+    //return constructModel();
+    // load model from local storage
+    return tf.loadLayersModel("https://github.com/ionutale/tic-tac-toe-ai/blob/size-5-autoplay-than-train/public/tictactoe-model-softmax/model.json");
   }
 };
 
