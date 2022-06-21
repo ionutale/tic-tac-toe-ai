@@ -14,20 +14,16 @@ export const doPredict = async (myBoard, ttt_model) => {
 
 let currentModel;
 
-tf.loadLayersModel("https://github.com/ionutale/tic-tac-toe-ai/blob/size-5-autoplay-than-train/public/tictactoe-model-softmax/model.json")
+let modelUrl = window.location.href + "tictactoe-model-softmax/model.json";
+console.log("Loading Model", modelUrl);
+tf.loadLayersModel(modelUrl)
   .then(model => {
     currentModel = model;
+    console.log("Model loaded", model);
   }).catch(error => {
     console.error(error);
   });
-
-
-const flipX = (arr) => {
-  return [arr.slice(6), arr.slice(3, 6), arr.slice(0, 3)].flat();
-};
-
-const flipY = (arr) => flipX(arr.slice().reverse());
-
+ 
 // Creates a 1 hot of the diff
 const showMove = (first, second) => {
   let result = [];
@@ -112,7 +108,7 @@ export const constructModel = () => {
   model.add(
     tf.layers.dense({
       units: inputShape,
-      activation: "sigmoid"
+      activation: "softmax"
     })
   );
 
@@ -120,7 +116,7 @@ export const constructModel = () => {
   model.compile({
     optimizer: tf.train.adam(learningRate),
     loss: "categoricalCrossentropy",
-    metrics: ["accuracy"]
+    metrics: ["accuracy", "mse"]
   });
 
   currentModel = model;
@@ -140,7 +136,8 @@ export const getModel = () => {
 export const trainOnGames = async (games, trainingProgress) => {
   try {
 
-    const model = constructModel();
+    // const model = constructModel();
+    const model = getModel();
     // model.dispose();
     let AllX = [];
     let AllY = [];
@@ -156,6 +153,7 @@ export const trainOnGames = async (games, trainingProgress) => {
     const stackedX = tf.stack(AllX);
     const stackedY = tf.stack(AllY);
     await trainModel(model, stackedX, stackedY, trainingProgress);
+    model.summary()
 
     // clean up!
     stackedX.dispose();
@@ -184,7 +182,7 @@ const trainModel = async (model, stackedX, stackedY, trainingProgress) => {
   await model.fit(stackedX, stackedY, {
     epochs: 100,
     shuffle: true,
-    batchSize: 32,
+    batchSize: 1,
     callbacks: allCallbacks
   });
 
