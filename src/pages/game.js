@@ -123,7 +123,7 @@ const Game = () => {
     // from the nextSqare get the highest value index
     let emptySquaresOnly = nextSqare.filter((v, i) => squares[i] === null)
 
-    let highestValueIndex = emptySquaresOnly.indexOf(Math.max(...emptySquaresOnly));
+    let highestValueIndex = squares.indexOf(Math.max(...emptySquaresOnly));
     // check if all board has been filled and there is no winner, reset the game
     if (highestValueIndex === -1) {
       jumpTo(0);
