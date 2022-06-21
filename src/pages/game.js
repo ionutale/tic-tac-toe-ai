@@ -31,6 +31,9 @@ function useInterval(callback, delay) {
 
 const Game = () => {
   const [trainingProgress, setTrainingProgress] = useState(0);
+  const [isXai, setIsXai] = useState(false);
+  const [is0ai, setIs0ai] = useState(false);
+
   const [mainState, setMainState] = useState({
     games: localStorage.getItem('games') ? JSON.parse(localStorage.getItem('games')) : [],
     history: [{ squares: emptyAllSqares }],
@@ -60,6 +63,9 @@ const Game = () => {
   }
 
   function aiMove() {
+    if (mainState.xIsNext && isXai === false) return
+    if (!mainState.xIsNext && is0ai === false) return
+
     if (mainState.winnerSqares.length === 0) {
       makeAIMove(mainState);
     } else {
@@ -120,32 +126,26 @@ const Game = () => {
     });
 
     let nextSqare = Array.from(await doPredict(AIready, state.activeModel));
-    // from the nextSqare get the highest value index
-    let emptySquaresOnly = nextSqare.filter((v, i) => squares[i] === null)
 
-    let highestValueIndex = squares.indexOf(Math.max(...emptySquaresOnly));
+    let nextBestMove = squares.map((v, i) => {
+      if(v === null) {
+        return {
+          index: i,
+          value: nextSqare[i]
+        }
+      }
+      return undefined;
+    }).filter((v) => v !== undefined)
+    
     // check if all board has been filled and there is no winner, reset the game
-    if (highestValueIndex === -1) {
+    if (nextBestMove.length === 0) {
       jumpTo(0);
       return;
     }
 
+    nextBestMove = nextBestMove.sort((a, b) => b.value - a.value)[0];
 
-    // check if square is already filled
-    // or if winner is already declared
-    if (highestValueIndex < 0 || squares[highestValueIndex] || state.winnerSqares.length) {
-      const emptySquares = squares.map((v, i) => {
-        if (v === null) {
-          return i;
-        }
-        return undefined;
-      }).filter((v) => v !== undefined);
-      const randomSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
-      console.log("random square is:", randomSquare, highestValueIndex);
-      highestValueIndex = randomSquare;
-    }
-
-    handleClick(highestValueIndex);
+    handleClick(nextBestMove.index);
   }
 
   // random move
@@ -172,6 +172,7 @@ const Game = () => {
     const AllMoves = mainState.history.map((board) => {
       return board.squares.map((v) => {
         if (v === null) return 0;
+        console.log(`${v}-${playerLearn}:${v === playerLearn ? 1 : -1}`);
         return v === playerLearn ? 1 : -1;
       });
     });
@@ -183,9 +184,10 @@ const Game = () => {
     //localStorage.setItem('games', JSON.stringify(games));
     //saveToDb(games.at(-1))
     dbApi.saveData(games.at(-1))
-
-    if (games.length > 10) {
-      games = [games.at(-1)]
+    const nrGames = 100
+    if (games.length >= nrGames) {
+      const newGames = games.slice(0, nrGames);
+      //await trainModel(newGames);
     }
 
     console.log(`${playerLearn} won! ${mainState.score[playerLearn]}`);
@@ -207,8 +209,8 @@ const Game = () => {
     setTrainingProgress(0);
   }
 
-  const trainModel = async () => {
-    const newModel = await trainOnGames(mainState.games, setTrainingProgress);
+  const trainModel = async (games) => {
+    const newModel = await trainOnGames(games, setTrainingProgress);
     console.log("new model is ready");
 
     console.log("saving to local state");
@@ -231,7 +233,7 @@ const Game = () => {
   });
 
   const saveWinGame = () => {
-    return ['x', 'o'].map((player, idx) => {
+    return ['X', '0'].map((player, idx) => {
       return (<>
         <button
           key={idx}
@@ -262,6 +264,13 @@ const Game = () => {
         <progress id="training" max="100" value={trainingProgress}> {trainingProgress}% </progress>
       </div>
     </div>
+    <div className="enableAi">
+        <input type="checkbox" id="enableAiForX" checked={isXai} onChange={() => setIsXai(!isXai)} name="enableAiForX"/>
+        <label htmlFor="enableAiForX">Enable AI for X</label>
+        <input type="checkbox" id="enableAiForO" checked={is0ai} onChange={() => setIs0ai(!is0ai)} name="enableAiFor0"/>
+        <label htmlFor="enableAiForO">Enable AI for O</label>
+    </div>
+
     <button onClick={() => autoplay()} className="btn effect01 animate__animated animate__fadeIn bigx">auto play</button>
     <button onClick={() => trainModel()} className="btn effect01 animate__animated animate__fadeIn">train model </button>
     {saveWinGame()}
