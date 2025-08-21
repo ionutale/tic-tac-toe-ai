@@ -4,16 +4,16 @@ const About = (props) => {
   return (
         <div>
         <div>
-          <a
+          <button
             onClick={() =>
               props.activeModel.save("downloads://ttt_model")
             }
             className="btn effect01"
           >
             <span>Download Current AI Model</span>
-          </a>
+          </button>
           <br />
-          <a
+          <button
             onClick={() => {
               const blob = new Blob(
                 [
@@ -33,12 +33,12 @@ const About = (props) => {
             className="btn effect01"
           >
             <span>Download Games Training Data</span>
-          </a>
+          </button>
         </div>
         <br />
-        <a href="#" className="modal__close">
+        <button className="modal__close" aria-label="Close modal">
           &times;
-        </a>
+        </button>
       </div>
   );
 }

@@ -137,9 +137,9 @@ const Game = () => {
     const desc = move ? "Move #" + move : "Empty Board";
     return (
       <li key={move}>
-        <a onClick={() => jumpTo(move)} className="btn effect01">
+        <button onClick={() => jumpTo(move)} className="btn effect01">
           <span>{desc}</span>
-        </a>
+        </button>
       </li>
     );
   });
@@ -153,15 +153,14 @@ const Game = () => {
 
   const trainSection = () => {
     if (winner || !current.squares.includes(null))
-      return ['x', 'o'].map((player) => {
+        return ['x', 'o'].map((player) => {
         return (<>
-          <a
-            href="#training-modal"
-            onClick={() => trainUp(player)}
+          <button
+            onClick={() => { window.location.hash = '#training-modal'; trainUp(player); }}
             className="btn effect01 animate__animated animate__fadeIn bigx"
           >
             <span>Train AI to play like {player}</span>
-          </a>
+          </button>
           <br />
           <br />
         </>
@@ -198,13 +197,12 @@ const Game = () => {
         <div>
           {winnerIs}
           {!winner && (
-            <a
+            <button
               onClick={makeAIMove.bind(this, mainState)}
               className="btn effect01"
-              target="_blank"
             >
               <span>Make AI Move</span>
-            </a>
+            </button>
           )}
         </div>
         <ol>{moves}</ol>
